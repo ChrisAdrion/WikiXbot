@@ -1,0 +1,78 @@
+package pck;
+
+import java.time.Duration;
+import java.util.ArrayList;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.JavascriptExecutor;
+import org.openqa.selenium.Point;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.chrome.ChromeDriver;
+
+public class Main {
+
+	public static void main(String[] args) {
+		
+		// project ideas
+		// Learn how to include image in twitter post
+		// add test cases to verify
+		// post once daily via Jenkins
+
+		// Initial declaration of variables
+		ChromeDriver driver = new ChromeDriver();
+		driver.manage().timeouts().implicitlyWait(Duration.ofSeconds(5));
+		
+		//logic Via functions
+		initiateBrowser(driver);
+		String postString = getWikiText(driver);
+		if(postString.length() > 280) 
+		{
+			postString = getWikiText(driver);
+		}
+		twitterLogin(driver, postString);		
+	}
+	
+	public static void initiateBrowser(ChromeDriver driver) {
+		driver.manage().window().setPosition(new Point(-1000, 1));
+		driver.manage().window().maximize();
+		driver.get("https://en.wikipedia.org/wiki/Main_Page");
+	}
+	
+	public static String getWikiText(ChromeDriver driver) {
+		
+		driver.findElement(By.id("vector-main-menu-dropdown-checkbox")).click();
+		driver.findElement(By.id("n-randompage")).click();
+		
+		String articleTitleString = driver.findElement(By.id("firstHeading")).getText();
+		WebElement bodyTextElement = driver.findElement(By.id("mw-content-text"));
+		
+		String articleFirstParagraphString = "  ";		
+		int temp = 1;
+		
+		while (articleFirstParagraphString.isBlank()) {
+			articleFirstParagraphString = bodyTextElement.findElement(By.xpath("//div[1]/p[" + temp + "]")).getText();
+			temp++;
+		}
+		
+		String[] paragraphSentenceStrings = articleFirstParagraphString.split("\\.");
+		String finalTextString = articleTitleString + ": " + paragraphSentenceStrings[0];
+				
+		return finalTextString;
+		
+
+	}
+	
+	public static void twitterLogin(ChromeDriver driver, String postString) {
+		((JavascriptExecutor) driver).executeScript("window.open()");
+		ArrayList<String> tabs = new ArrayList<>(driver.getWindowHandles());
+		driver.switchTo().window(tabs.get(1));
+		driver.get("https://x.com/home?lang=en");
+		driver.findElement(By.cssSelector("div[style$='color: rgb(29, 155, 240);']")).click();
+		driver.findElement(By.cssSelector("input[name='text']")).sendKeys("AdrionChri65909");
+		driver.findElement(By.cssSelector("div[style='color: rgb(255, 255, 255);']")).click();
+		driver.findElement(By.cssSelector("input[name='password']")).sendKeys("ThisIsn'tAPassword");
+		driver.findElement(By.cssSelector("div[style='color: rgb(255, 255, 255);']")).click();
+		driver.findElement(By.cssSelector("div[class='public-DraftStyleDefault-block public-DraftStyleDefault-ltr']")).sendKeys(postString);
+		driver.findElement(By.cssSelector("button[data-testid='tweetButtonInline']")).click();
+	}
+}
